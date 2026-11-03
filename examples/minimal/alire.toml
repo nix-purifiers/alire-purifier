@@ -1,0 +1,8 @@
+name = "purifierproof"
+version = "0.1.0"
+description = "Native Alire purifier proof"
+licenses = "MIT"
+executables = ["purifierproof"]
+[[depends-on]]
+libhello = "=1.0.1"
+gnat = "^16.0.0"

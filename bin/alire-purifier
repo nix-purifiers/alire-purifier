@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+import pathlib
+import runpy
+import sys
+sys.path.insert(0,str(pathlib.Path(__file__).resolve().parent.parent/'lib/alire-purifier'))
+runpy.run_module('alire_purifier.cli',run_name='__main__')

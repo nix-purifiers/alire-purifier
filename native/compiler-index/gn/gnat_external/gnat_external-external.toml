@@ -1,0 +1,8 @@
+name = "gnat_external"
+description = "GNAT provided by the Nix SDK"
+maintainers = ["the nix-purifier developers <developers@example.invalid>"]
+[[external]]
+kind = "version-output"
+version-command = ["gnat", "--version"]
+version-regexp = '^GNAT\D*([\d\.]+).*'
+provides = "gnat"

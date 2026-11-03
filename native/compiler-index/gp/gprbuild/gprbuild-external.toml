@@ -1,0 +1,7 @@
+name = "gprbuild"
+description = "GPRbuild provided by the Nix SDK"
+maintainers = ["the nix-purifier developers <developers@example.invalid>"]
+[[external]]
+kind = "version-output"
+version-command = ["gprbuild", "--version"]
+version-regexp = '^GPRBUILD\s+Pro\s+([\d\.]+).*'

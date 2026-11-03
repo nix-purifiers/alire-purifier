@@ -1,0 +1,11 @@
+result*
+cli
+.alire-purifier/
+/alire/
+/examples/minimal/alire/
+/examples/minimal/config/
+/examples/minimal/obj/
+/examples/minimal/bin/
+__pycache__/
+*.pyc
+*.log
