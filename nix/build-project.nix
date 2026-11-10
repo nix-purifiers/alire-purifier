@@ -92,7 +92,7 @@ let
               cd source
             ''
         }
-        ${python}/bin/python3 ${buildTools}/build-context.py ${context} "$PWD" "$TMPDIR/context" ${lib.optionalString selected ''"$out/native" ${lib.escapeShellArgs projects}''}
+        ${python}/bin/python3 ${buildTools}/build-context.py ${context} "$PWD" "$TMPDIR/context" ${lib.optionalString selected ''--record-installations "$out/native" ${lib.escapeShellArgs projects}''}
         ${lib.optionalString selected ''
           ${python}/bin/python3 ${./native-snapshot.py} "$PWD"
         ''}

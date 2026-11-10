@@ -46,16 +46,27 @@ def select(project, source, spec, out, ldd):
                 defined.add(fields[7].split("@")[0])
         if not set(product["exports"]).issubset(defined):
             raise ValueError("selected native library lacks declared C exports")
-        manifest = inside(prefix, "share/gpr/manifests/" + Path(product["project"]).stem)
-        installed = {}
-        for line in manifest.read_text().splitlines()[1:]:
-            checksum, relative = line.split(" ", 1)
-            file = (manifest.parent / relative).resolve(strict=True)
-            if not file.is_relative_to(prefix.resolve()) or digest(file, "md5") != checksum:
-                raise ValueError("native GPR installation manifest mismatch")
-            installed[str(file)] = checksum
-        if str(library) not in installed:
+        installations = json.loads((prefix / "native-installations.json").read_text())
+        owners = [record for record in installations if record["project"] == product["project"]]
+        if len(owners) != 1:
+            raise ValueError("selected GPR project has no unique native installation")
+        matches = []
+        for emitted in owners[0]["manifests"]:
+            manifest = inside(prefix, "share/gpr/manifests/" + emitted["name"])
+            if digest(manifest) != emitted["sha256"]:
+                raise ValueError("native GPR installation manifest changed after installation")
+            installed = {}
+            for line in manifest.read_text().splitlines()[1:]:
+                checksum, relative = line.split(" ", 1)
+                file = (manifest.parent / relative).resolve(strict=True)
+                if not file.is_relative_to(prefix.resolve()) or digest(file, "md5") != checksum:
+                    raise ValueError("native GPR installation manifest mismatch")
+                installed[str(file)] = checksum
+            if str(library) in installed:
+                matches.append(manifest)
+        if len(matches) != 1:
             raise ValueError("selected library is not installed by its owning GPR project")
+        manifest = matches[0]
         # The exchange record is compiler output. Join its exact compiled bytes
         # to the installed selection before accepting the generated binder.
         binders = []
@@ -116,7 +127,8 @@ def select(project, source, spec, out, ldd):
             shutil.copyfile(header, destination)
             headers.append({"path": relative, "source": str(header), "sha256": digest(header)})
         model["products"][name] = {**product, "installedLibrary": str(library), "sha256": digest(library),
-                                  "installationManifest": str(manifest), "binder": binders[0],
+                                  "installationManifest": str(manifest),
+                                  "installationInvocation": str(prefix / "native-installations.json"), "binder": binders[0],
                                   "headersProof": headers, "isolatedLoaderOrigins": origins, "elfHeader": elf}
     (out / "native-libraries.json").write_text(json.dumps(model, sort_keys=True, indent=2) + "\n")
 

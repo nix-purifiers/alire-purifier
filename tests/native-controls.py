@@ -18,9 +18,11 @@ product = {
 receipts = {}
 with tempfile.TemporaryDirectory(prefix="alire native controls ") as temporary:
     root = Path(temporary)
-    def build(name, *, replacement=None, change=None, selected=None, expected=None):
+    def build(name, *, replacement=None, change=None, selected=None, expected=None, alias=False):
         source = root / name
         shutil.copytree(repo / "examples/native-projection", source)
+        if alias:
+            shutil.copyfile(source / "purifierprobe.gpr", source / "entry.gpr")
         if replacement:
             file = source / "src/probe.adb"
             file.write_text(file.read_text().replace("Value := 42", "Value := 99"))
@@ -44,6 +46,11 @@ with tempfile.TemporaryDirectory(prefix="alire native controls ") as temporary:
         return Path(result.stdout.strip())
 
     original = build("original")
+    aliased = copy.deepcopy(product); aliased["project"] = "entry.gpr"
+    alias = build("owning-project-filename-alias", selected=aliased, alias=True)
+    alias_model = json.loads((alias / "native-libraries.json").read_text())["products"]["answer"]
+    assert alias_model["project"] == "entry.gpr"
+    assert Path(alias_model["installationManifest"]).name == "entry"
     replacement = build("replacement", replacement=True)
     old = original / "lib/answer/libanswer.so"
     new = replacement / "lib/answer/libanswer.so"
