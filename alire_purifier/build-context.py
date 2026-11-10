@@ -1,16 +1,17 @@
 """Create a native, offline build context for one source package."""
 
 import json
+import hashlib
 from pathlib import Path
 import os
 import sys
 
 import tomli_w
 
-from common import alr, native_environment, setup, shell_environment, write
+from common import alr, command, native_environment, setup, shell_environment, write
 from provider import provide, catalog
 
-manifest_file, root, context = sys.argv[1:]
+manifest_file, root, context, *installation = sys.argv[1:]
 manifest = json.loads(Path(manifest_file).read_text())
 root = Path(root).resolve()
 context = Path(context).resolve()
@@ -49,3 +50,30 @@ for file in root.rglob("*"):
     if file.is_file() and not file.is_symlink():
         os.utime(file, (1, 1))
 alr(root, settings, env, "build", "--release")
+if installation:
+    record_installations = installation[0] == "--record-installations"
+    if record_installations:
+        installation.pop(0)
+    prefix, *projects = installation
+    # Installation must see the same captured scenario variables and native
+    # dependency projects as the build. Re-entering gprinstall with the outer
+    # builder environment can select a different library kind.
+    install_env = shell_environment(alr(root, settings, env, "printenv"), env)
+    records = []
+    for project in projects:
+        manifests = Path(prefix) / "share/gpr/manifests"
+        before = {p.name: p.read_bytes() for p in manifests.glob("*") if p.is_file()}
+        print(command(
+            [programs["gprinstall"], "-P", project, "--prefix=" + prefix, "-p", "-f"],
+            cwd=root,
+            env=install_env,
+        ), end="")
+        if record_installations:
+            emitted = [{"name": p.name, "sha256": hashlib.sha256(p.read_bytes()).hexdigest()}
+                       for p in sorted(manifests.glob("*"))
+                       if p.is_file() and before.get(p.name) != p.read_bytes()]
+            if not emitted:
+                raise ValueError("native GPR installation has no unambiguous emitted manifest")
+            records.append({"project": project, "manifests": emitted})
+    if record_installations:
+        write(Path(prefix) / "native-installations.json", json.dumps(records, sort_keys=True, indent=2) + "\n")

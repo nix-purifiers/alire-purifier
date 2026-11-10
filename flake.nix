@@ -54,11 +54,21 @@
             doCheck = true;
             checkCommand = ''test "$("$out/bin/purifierproof" | tail -n 1)" = 42'';
           };
+          native = p.alire-purifier.buildAlireProject {
+            src = ./examples/native-projection;
+            nativeLibraries.answer = import ./tests/native/product.nix;
+          };
         in
         {
           inherit (b.packages) environment project;
           release = b.release;
           cli = self.packages.${system}.default;
+          native-project = native.packages.project;
+          native-libraries = native.native;
+          native-consumers = import ./tests/native-consumers.nix {
+            pkgs = p;
+            built = native;
+          };
         }
       );
       formatter = forAll (system: (pkgsFor system).nixfmt-tree);

@@ -1,0 +1,8 @@
+name = "purifierprobe"
+version = "1.0.0"
+description = "Native shared library projection probe"
+licenses = "MIT"
+project-files = ["purifierprobe.gpr"]
+[[depends-on]]
+libhello = "=1.0.1"
+gnat = "^16.0.0"
