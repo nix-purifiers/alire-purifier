@@ -100,11 +100,8 @@ let
           chmod -R u+w source
           cd source
           cp ${writeText "alire.toml" node.manifest} alire.toml
-          ${python}/bin/python3 ${buildTools}/build-context.py ${context} "$PWD" "$TMPDIR/context"
           mkdir -p "$out/share/gpr" "$prepared"
-          ${lib.concatMapStrings (project: ''
-            ${toolchain.gprbuild}/bin/gprinstall -P ${lib.escapeShellArg project} --prefix="$out" -p -f
-          '') node.projects}
+          ${python}/bin/python3 ${buildTools}/build-context.py ${context} "$PWD" "$TMPDIR/context" "$out" ${lib.escapeShellArgs node.projects}
           cp -pr . "$prepared/"
           # GPR's incremental-build exchange records contain wall-clock object
           # timestamps. Consumers use the installed, externally built GPR project;

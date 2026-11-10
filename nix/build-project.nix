@@ -16,6 +16,8 @@
   sdkVersion,
   gnutar,
   gzip,
+  stdenv,
+  binutils,
 }@scope:
 {
   src,
@@ -25,12 +27,18 @@
   nativeBuildInputs ? [ ],
   doCheck ? false,
   checkCommand ? "",
+  nativeLibraries ? { },
 }:
 let
+  selected = nativeLibraries != { };
+  names = builtins.attrNames nativeLibraries;
+  projects = lib.unique (map (n: nativeLibraries.${n}.project) names);
   lock = purifier.checkLock (import ./read-lock.nix { inherit lib; } { inherit src lockFile; });
   prepared = import ./environment.nix (builtins.removeAttrs scope [
     "gnutar"
     "gzip"
+    "stdenv"
+    "binutils"
   ]) { inherit lock fetchers libraryOverrides; };
   source = lib.cleanSourceWith {
     inherit src;
@@ -69,15 +77,34 @@ let
         ++ nativeBuildInputs;
       }
       ''
-        cp -pr ${source} source
-        chmod -R u+w source
-        cd source
-        ${python}/bin/python3 ${buildTools}/build-context.py ${context} "$PWD" "$TMPDIR/context"
+        ${
+          if selected then
+            ''
+              mkdir -p "$out/build"
+              cp -pr ${source}/. "$out/build/"
+              chmod -R u+w "$out/build"
+              cd "$out/build"
+            ''
+          else
+            ''
+              cp -pr ${source} source
+              chmod -R u+w source
+              cd source
+            ''
+        }
+        ${python}/bin/python3 ${buildTools}/build-context.py ${context} "$PWD" "$TMPDIR/context" ${lib.optionalString selected ''"$out/native" ${lib.escapeShellArgs projects}''}
+        ${lib.optionalString selected ''
+          ${python}/bin/python3 ${./native-snapshot.py} "$PWD"
+        ''}
         mkdir -p "$out/bin" "$out/source"
         if [ -d bin ]; then cp -pr bin/. "$out/bin/"; fi
         ${lib.optionalString doCheck checkCommand}
         cp -pr ${source}/. "$out/source/"
       '';
+  native = callPackage ./native-projections.nix { } {
+    inherit nativeLibraries project source;
+    dependencyPrefixes = map (a: a.prefix) (builtins.attrValues prepared.sourceArtifacts);
+  };
   release =
     runCommand "alire-native-release"
       {
@@ -94,6 +121,10 @@ let
       '';
 in
 assert lib.assertMsg (lock.data.sdk == sdkVersion) "Alire frontend SDK changed; update the lock";
+assert lib.assertMsg (
+  !selected || (stdenv.hostPlatform.isLinux && stdenv.buildPlatform == stdenv.hostPlatform)
+) "alire-purifier: nativeLibraries requires a native Linux build";
+assert !selected || native.validated;
 {
   packages = {
     default = project;
@@ -103,4 +134,6 @@ assert lib.assertMsg (lock.data.sdk == sdkVersion) "Alire frontend SDK changed; 
   tests = project;
   inherit release;
   fetches = lock.entries;
+  projections = if selected then native.projections else { };
+  native = if selected then native.producer else null;
 }

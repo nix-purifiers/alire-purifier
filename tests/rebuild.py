@@ -25,4 +25,19 @@ for artifact in manifest["artifacts"].values():
         ["nix-store", "-q", "--deriver", artifact["prefix"]], text=True
     ).strip()
     subprocess.run(["nix-store", "--realise", drv, "--check"], check=True)
-print("Installed and prepared native Alire dependencies rebuilt identically")
+native = Path(subprocess.check_output([
+    "nix", "build", "--no-link", "--print-out-paths",
+    str(repo) + "#checks." + system + ".native-libraries",
+], text=True).strip())
+model = json.loads((native / "native-libraries.json").read_text())
+dependencies = {
+    "/".join(origin["path"].split("/")[:4])
+    for product in model["products"].values()
+    for origin in product["isolatedLoaderOrigins"]
+    if origin["role"] == "locked-dependency"
+}
+assert dependencies
+for prefix in sorted(dependencies):
+    drv = subprocess.check_output(["nix-store", "-q", "--deriver", prefix], text=True).strip()
+    subprocess.run(["nix-store", "--realise", drv, "--check"], check=True)
+print("Installed and prepared static/shared native Alire dependencies rebuilt identically")

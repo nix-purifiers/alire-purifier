@@ -81,6 +81,67 @@ pkgs.alire-purifier.buildAlireProject {
 It exposes evaluation-known `packages`, `tests`, `release` and `fetches`.
 `libraryOverrides` supplies crate-specific build changes.
 
+### Native C ABI projections
+
+Opt in to installed shared libraries with an explicit owning GPR project, public
+C headers, exports, and runtime contract:
+
+```nix
+pkgs.alire-purifier.buildAlireProject {
+  src = ./.;
+  nativeLibraries.answer = {
+    project = "purifierprobe.gpr";
+    library = "lib/purifierprobe/libpurifier_probe.so";
+    headers = [ "purifier_probe.h" ];
+    exports = [ "purifier_answer" ];
+    runtime = {
+      kind = "gnat";
+      initialization = "linker-constructor";
+      lifecycle = "process-lifetime";
+      threading = "single-foreign-thread";
+    };
+  };
+}
+```
+
+`library` selects a file in the native `gprinstall` prefix. Header paths are
+relative to the source project and keep their relative paths under `include`.
+The GPR project must produce a standalone shared library with automatic
+elaboration and finalization, for example `Library_Standalone = "standard"`
+and `Library_Auto_Init = "true"`. Public Ada subprograms need a C convention and
+explicit exported names matching the owned C header. Configure PIC/shared
+dependencies through their native GPR scenario variables before capturing the
+lock, such as `LIBHELLO_LIBRARY_TYPE=relocatable alire-purifier lock`.
+
+The result exposes `native` and `projections.native`, `projections.python-ffi`,
+and `projections.java-ffi`. The native catalog identifies the selected library
+prefix; the Python adapter provides `purifier_native.load("answer")`. Java's
+`java.args` configures the projected native paths and catalog for ordinary FFI
+consumers. The adapter does not infer C function signatures.
+
+Libraries retain their installed bytes and original Nix runtime dependencies.
+Selection verifies the native installation manifest, declared exports, compiled
+library identity, and generated binder constructor/destructor. The retained
+`native-libraries.json` records compiler, headers, binder and isolated-loader
+origins. An existing host process can already have a compatible GCC support
+library loaded; its actual origin can differ from isolated `ldd`. Consumer
+proofs separately record actual loaded libraries and require exact origins for
+the GNAT runtime and locked Ada dependency.
+
+This interface currently requires native Linux builds. Keep the library loaded
+for the process lifetime, call it from one foreign thread, and let its linker
+constructor/destructor manage Ada elaboration/finalization. Manual runtime
+entry calls, early unload, concurrent calls, and exceptions crossing the C ABI
+are outside this contract. Empty `nativeLibraries` preserves existing outputs.
+Source publication remains a native Alire source archive.
+
+The native checks execute C, ctypes, CFFI and Java FFI consumers, including
+automatic elaboration/finalization, byte and runtime-origin checks, genuine
+compiled replacement and missing-closure controls, fresh native resolver
+capture, and direct producer/projection/consumer rebuilds. Volatile GPR
+incremental caches are pruned after retaining their semantic exchange sections;
+native binder source and compiled library bytes remain unchanged.
+
 ## Credits
 
 The purifier idea was inspired by nixcloud's

@@ -1,0 +1,170 @@
+{
+  "entries": [
+    {
+      "git": {
+        "commitObject": null,
+        "leaveDotGit": false,
+        "rev": "3c15bc7f3df22298077c9e96f178adc2829feb42",
+        "submodules": false,
+        "url": "https://github.com/alire-project/libhello.git"
+      },
+      "hash": "sha256-ugtLN81ehiCNGvXLBBE1y+z7r8GTVPYLYTXOq3lCDCU=",
+      "path": "sources/libhello"
+    }
+  ],
+  "externals": {
+    "LIBHELLO_LIBRARY_TYPE": {
+      "set": true,
+      "value": "relocatable"
+    },
+    "LIBRARY_TYPE": {
+      "set": false,
+      "value": ""
+    }
+  },
+  "extraInputs": [],
+  "indexes": [
+    "git+https://github.com/alire-project/alire-index#stable-1.4.0"
+  ],
+  "inputs": {
+    "alire.toml": {
+      "sha256": "f01071ce26886425d0b6b81dd2cc8af2214f9007e71a8af6615a92c37ce5a381"
+    }
+  },
+  "native": {
+    "solution": {
+      "context": {
+        "solved": true
+      },
+      "state": [
+        {
+          "crate": "gnat",
+          "fulfilment": "solved",
+          "pinned": false,
+          "release": {
+            "description": "GNAT is a compiler for the Ada programming language",
+            "maintainers": [
+              "alejandro@mosteo.com"
+            ],
+            "maintainers-logins": [
+              "mosteo"
+            ],
+            "name": "gnat_external",
+            "origin": {
+              "sdk": "gnat"
+            },
+            "provides": [
+              "gnat=16.2.0"
+            ],
+            "version": "16.2.0"
+          },
+          "transitivity": "direct",
+          "versions": "^16.0.0"
+        },
+        {
+          "crate": "libhello",
+          "fulfilment": "solved",
+          "pinned": false,
+          "release": {
+            "authors": [
+              "Alejandro R. Mosteo"
+            ],
+            "description": "Basic library demonstration project",
+            "licenses": "MIT",
+            "maintainers": [
+              "Alejandro R. Mosteo <alejandro@mosteo.com>"
+            ],
+            "maintainers-logins": [
+              "mosteo"
+            ],
+            "name": "libhello",
+            "origin": {
+              "commit": "3c15bc7f3df22298077c9e96f178adc2829feb42",
+              "url": "git+https://github.com/alire-project/libhello.git"
+            },
+            "tags": [
+              "hello",
+              "demo",
+              "library"
+            ],
+            "version": "1.0.1",
+            "website": "https://github.com/alire-project/libhello"
+          },
+          "transitivity": "direct",
+          "versions": "=1.0.1"
+        }
+      ]
+    }
+  },
+  "nodes": [
+    {
+      "aliases": [
+        "gnat"
+      ],
+      "dependencies": [],
+      "kind": "sdk",
+      "name": "gnat_external",
+      "release": {
+        "description": "GNAT is a compiler for the Ada programming language",
+        "maintainers": [
+          "alejandro@mosteo.com"
+        ],
+        "maintainers-logins": [
+          "mosteo"
+        ],
+        "name": "gnat_external",
+        "origin": {
+          "sdk": "gnat"
+        },
+        "provides": [
+          "gnat=16.2.0"
+        ],
+        "version": "16.2.0"
+      },
+      "version": "16.2.0"
+    },
+    {
+      "aliases": [
+        "libhello"
+      ],
+      "dependencies": [],
+      "entry": "sources/libhello",
+      "kind": "source",
+      "manifest": "authors = [\n    \"Alejandro R. Mosteo\",\n]\ndescription = \"Basic library demonstration project\"\nlicenses = \"MIT\"\nmaintainers = [\n    \"Alejandro R. Mosteo <alejandro@mosteo.com>\",\n]\nmaintainers-logins = [\n    \"mosteo\",\n]\nname = \"libhello\"\ntags = [\n    \"hello\",\n    \"demo\",\n    \"library\",\n]\nversion = \"1.0.1\"\nwebsite = \"https://github.com/alire-project/libhello\"\n",
+      "name": "libhello",
+      "projects": [
+        "libhello.gpr"
+      ],
+      "release": {
+        "authors": [
+          "Alejandro R. Mosteo"
+        ],
+        "description": "Basic library demonstration project",
+        "licenses": "MIT",
+        "maintainers": [
+          "Alejandro R. Mosteo <alejandro@mosteo.com>"
+        ],
+        "maintainers-logins": [
+          "mosteo"
+        ],
+        "name": "libhello",
+        "origin": {
+          "commit": "3c15bc7f3df22298077c9e96f178adc2829feb42",
+          "url": "git+https://github.com/alire-project/libhello.git"
+        },
+        "tags": [
+          "hello",
+          "demo",
+          "library"
+        ],
+        "version": "1.0.1",
+        "website": "https://github.com/alire-project/libhello"
+      },
+      "subdir": ".",
+      "version": "1.0.1"
+    }
+  ],
+  "purifier": "alire",
+  "sdk": "b1b1e78046da5b62e1f2a07f5ae0bda361c8fc95c402fda00ab6f0eb271e4f7a",
+  "version": 1
+}
