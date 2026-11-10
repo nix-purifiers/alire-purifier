@@ -9,6 +9,9 @@ import subprocess
 import tempfile
 
 repo = Path(__file__).resolve().parent.parent
+native_python = subprocess.check_output([
+    "nix", "eval", "--impure", "--raw", "--file", str(repo / "tests/native-python.nix"),
+], text=True).strip()
 product = {
     "project": "purifierprobe.gpr", "library": "lib/purifierprobe/libpurifier_probe.so",
     "headers": ["purifier_probe.h"], "exports": ["purifier_answer"],
@@ -56,7 +59,8 @@ with tempfile.TemporaryDirectory(prefix="alire native controls ") as temporary:
     new = replacement / "lib/answer/libanswer.so"
     assert hashlib.sha256(old.read_bytes()).digest() != hashlib.sha256(new.read_bytes()).digest()
     code = "import ctypes,sys; d=ctypes.CDLL(sys.argv[1]); d.purifier_answer.argtypes=[ctypes.c_int]; d.purifier_answer.restype=ctypes.c_int; assert [d.purifier_answer(0),d.purifier_answer(1)] == [99,100]"
-    run = subprocess.run(["python3", "-c", code, str(new)], capture_output=True, text=True, check=True)
+    run = subprocess.run([native_python, "-c", code, str(new)], capture_output=True, text=True)
+    assert run.returncode == 0, (run.returncode, run.stdout, run.stderr)
     assert run.stdout.splitlines() == ["Hello, world!", "purifier finalized"] and not run.stderr
     receipts["replacement-execution"] = {"stdout": run.stdout, "stderr": run.stderr, "values": [99, 100],
         "oldSha256": hashlib.sha256(old.read_bytes()).hexdigest(), "replacementSha256": hashlib.sha256(new.read_bytes()).hexdigest(),

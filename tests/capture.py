@@ -8,6 +8,9 @@ import subprocess
 import tempfile
 
 repo = Path(__file__).resolve().parent.parent
+native_python = subprocess.check_output([
+    "nix", "eval", "--impure", "--raw", "--file", str(repo / "tests/native-python.nix"),
+], text=True).strip()
 sdk = Path(
     subprocess.check_output(
         ["nix", "build", str(repo) + "#", "--no-link", "--print-out-paths"], text=True
@@ -75,6 +78,7 @@ for fixture in ("minimal", "native-projection"):
                        + json.dumps(str(repo)) + '; src = ' + json.dumps(str(root)) + '; }).native']
             prefix = Path(subprocess.check_output(command, text=True).strip())
             code = 'import ctypes,sys; d=ctypes.CDLL(sys.argv[1]); d.purifier_answer.argtypes=[ctypes.c_int]; assert [d.purifier_answer(0),d.purifier_answer(1)]==[42,43]'
-            result = subprocess.run(["python3", "-c", code, str(prefix / "lib/answer/libanswer.so")], text=True, capture_output=True, check=True)
+            result = subprocess.run([native_python, "-c", code, str(prefix / "lib/answer/libanswer.so")], text=True, capture_output=True)
+            assert result.returncode == 0, (result.returncode, result.stdout, result.stderr)
             assert result.stdout.splitlines() == ["Hello, world!", "purifier finalized"] and not result.stderr
 print("Original Alire resolver captures, immutable selections and executable/shared-library replay passed")
