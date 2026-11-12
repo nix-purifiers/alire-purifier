@@ -153,7 +153,7 @@ def main():
         expression = (
             "import "
             + json.dumps(
-                os.environ["ALIRE_PURIFIER_SDK"] + "/lib/alire-purifier/nix/release.nix"
+                os.environ["ALIRE_PURIFIER_SDK"] + "/lib/alire-purifier/pkgs/build-alire-project/release.nix"
             )
             + " {root="
             + json.dumps(str(root))

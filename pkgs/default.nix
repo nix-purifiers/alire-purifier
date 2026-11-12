@@ -19,7 +19,7 @@ pkgs.lib.makeScope pkgs.newScope (scope: {
       ../alire_purifier/make-provider.py
     ];
   };
-  toolchain = pkgs.callPackage ./toolchain.nix { };
+  toolchain = pkgs.callPackage ./build-alire-project/toolchain.nix { };
   python = pkgs.python3.withPackages (p: [ p.tomli-w ]);
   nativePath = pkgs.lib.makeBinPath [
     scope.toolchain.gnat
@@ -43,10 +43,10 @@ pkgs.lib.makeScope pkgs.newScope (scope: {
     gnatxref = pkgs.lib.getExe' scope.toolchain.gnat "gnatxref";
   };
   purifier = import (purifierSrc + "/nix/lib") { inherit (pkgs) lib; };
-  sdkVersion = import ./sdk-version.nix {
+  sdkVersion = import ./build-alire-project/sdk-version.nix {
     inherit nixpkgsSrc;
     inherit (pkgs) alire;
   };
-  cli = scope.callPackage ./cli.nix { inherit nixpkgsSrc purifierSrc; };
-  buildAlireProject = scope.callPackage ./build-project.nix { };
+  cli = scope.callPackage ./cli/default.nix { inherit nixpkgsSrc purifierSrc; };
+  buildAlireProject = scope.callPackage ./build-alire-project/default.nix { };
 })

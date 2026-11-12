@@ -33,7 +33,9 @@ let
   selected = nativeLibraries != { };
   names = builtins.attrNames nativeLibraries;
   projects = lib.unique (map (n: nativeLibraries.${n}.project) names);
-  lock = purifier.checkLock (import ./read-lock.nix { inherit lib; } { inherit src lockFile; });
+  lock = purifier.checkLock (
+    import ../../lib-overlays/default/read-lock.nix { inherit lib; } { inherit src lockFile; }
+  );
   prepared = import ./environment.nix (builtins.removeAttrs scope [
     "gnutar"
     "gzip"
@@ -61,7 +63,7 @@ let
       names = map (n: n.name) lock.data.nodes;
       artifacts = prepared.sourceArtifacts;
       inherit programs nativePath;
-      compilerIndex = ../native/compiler-index;
+      compilerIndex = ../../native/compiler-index;
       externals = lock.data.externals;
     }
   );

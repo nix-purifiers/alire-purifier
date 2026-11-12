@@ -23,15 +23,15 @@ in
 stdenvNoCC.mkDerivation {
   pname = "alire-purifier";
   version = "0.1.0";
-  src = ../.;
+  src = ../..;
   nativeBuildInputs = [ makeWrapper ];
   dontBuild = true;
   installPhase = ''
     mkdir -p "$out/bin" "$out/lib/alire-purifier"
-    cp -r alire_purifier nix native "$out/lib/alire-purifier/"
+    cp -r alire_purifier pkgs lib-overlays native "$out/lib/alire-purifier/"
     install -m755 bin/alire-purifier "$out/bin/alire-purifier"
     for file in realize release; do
-      substituteInPlace "$out/lib/alire-purifier/nix/$file.nix" --replace-fail '@nixpkgs@' '${nixpkgsSrc}' --replace-fail '@purifier@' '${purifierSrc}'
+      substituteInPlace "$out/lib/alire-purifier/pkgs/build-alire-project/$file.nix" --replace-fail '@nixpkgs@' '${nixpkgsSrc}' --replace-fail '@purifier@' '${purifierSrc}'
     done
     for binary in ${toolchain.gnat}/bin/* ${toolchain.gprbuild}/bin/*; do
       ln -sf "$binary" "$out/bin/$(basename "$binary")"

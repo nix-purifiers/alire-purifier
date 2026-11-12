@@ -18,7 +18,7 @@
       ];
       forAll = nixpkgs.lib.genAttrs systems;
       overlay = final: prev: {
-        alire-purifier = import ./nix/scope.nix {
+        alire-purifier = import ./pkgs/default.nix {
           pkgs = final;
           nixpkgsSrc = nixpkgs;
           purifierSrc = purifier;
@@ -44,7 +44,7 @@
           meta.description = "Lock native Alire dependencies";
         };
       });
-      lib.alire-purifier.readLock = import ./nix/read-lock.nix { lib = nixpkgs.lib; };
+      lib.alire-purifier = (nixpkgs.lib.extend (import ./lib-overlays/default)).alire-purifier;
       checks = forAll (
         system:
         let
