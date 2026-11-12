@@ -71,7 +71,7 @@ let
             inherit programs nativePath;
             native = data.native;
             names = deps;
-            compilerIndex = ../native/compiler-index;
+            compilerIndex = ../../native/compiler-index;
             artifacts = builtins.listToAttrs (
               map (name: {
                 inherit name;
@@ -125,7 +125,7 @@ let
           native = data.native;
           artifacts = sourceArtifacts;
           inherit programs;
-          compilerIndex = ../native/compiler-index;
+          compilerIndex = ../../native/compiler-index;
         }
       )
     } "$out"

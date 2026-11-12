@@ -18,7 +18,7 @@ def prepare(root, companion):
     expression = (
         "import "
         + json.dumps(
-            os.environ["ALIRE_PURIFIER_SDK"] + "/lib/alire-purifier/nix/realize.nix"
+            os.environ["ALIRE_PURIFIER_SDK"] + "/lib/alire-purifier/pkgs/build-alire-project/realize.nix"
         )
         + " {root="
         + json.dumps(str(root))
